@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>История</title>
+
+  <style>
+
+    body{
+      margin:0;
+      background:#0f0f0f;
+      color:white;
+      font-family:Arial;
+    }
+
+    header{
+      background:#202020;
+      padding:15px 25px;
+    }
+
+    .videos{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:20px;
+      padding:20px;
+    }
+
+    .card{
+      background:#181818;
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    iframe{
+      width:100%;
+      height:200px;
+      border:none;
+      pointer-events:none;
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" style="color:white;text-decoration:none">
+    ← Главная
+  </a>
+</header>
+
+<div class="videos" id="historyList"></div>
+
+<script>
+
+const history =
+  JSON.parse(localStorage.getItem("history")) || [];
+
+fetch("videos.json")
+.then(res => res.json())
+.then(videos => {
+
+  const container =
+    document.getElementById("historyList");
+
+  history.reverse().forEach(id => {
+
+    const video =
+      videos.find(v => v.id == id);
+
+    if(video){
+
+      container.innerHTML += `
+
+        <a href="watch.html?id=${video.id}"
+           style="text-decoration:none;color:white">
+
+          <div class="card">
+
+            <iframe
+              src="https://drive.google.com/file/d/${video.driveId}/preview">
+            </iframe>
+
+            <div style="padding:14px">
+
+              <h3>${video.title}</h3>
+              <p style="color:#aaa">
+                Просмотрено
+              </p>
+
+            </div>
+
+          </div>
+
+        </a>
+
+      `;
+
+    }
+
+  });
+
+});
+
+</script>
+
+</body>
+</html>
