@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Вход</title>
+
+  <style>
+
+    body{
+      margin:0;
+      height:100vh;
+
+      display:flex;
+      justify-content:center;
+      align-items:center;
+
+      background:#0f0f0f;
+
+      font-family:Arial;
+    }
+
+    .box{
+
+      background:#181818;
+
+      padding:40px;
+
+      border-radius:14px;
+
+      width:320px;
+    }
+
+    h1{
+      color:rgb(179, 0, 255);
+      text-align:center;
+      margin-bottom:25px;
+    }
+
+    input{
+
+      width:90%;
+
+      padding:14px;
+
+      margin-bottom:15px;
+
+      border:none;
+
+      border-radius:8px;
+
+      background:#2a2a2a;
+
+      color:white;
+
+      font-size:16px;
+    }
+
+    button{
+
+      width:98%;
+
+      padding:14px;
+
+      border:none;
+
+      border-radius:8px;
+
+      background:rgb(179, 0, 255);
+
+      color:white;
+
+      font-size:16px;
+
+      cursor:pointer;
+      
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="box">
+
+  <h1>ViceTube</h1>
+
+  <input
+    type="text"
+    id="username"
+    placeholder="Имя">
+
+  <button onclick="login()">
+    Войти
+  </button>
+
+</div>
+
+<script>
+
+function login(){
+
+  const username =
+    document.getElementById("username").value;
+
+  if(username.trim() == ""){
+    return;
+  }
+
+  const account = {
+
+    username:username,
+
+    history:[],
+
+    searches:[]
+
+  };
+
+  localStorage.setItem(
+    "account",
+    JSON.stringify(account)
+  );
+
+  window.location.href = "index.html";
+
+}
+
+</script>
+
+</body>
+</html>
