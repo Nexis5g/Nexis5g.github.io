@@ -5,7 +5,7 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
 
-  <title>ViceTube</title>
+  <title>VideoTube</title>
 
   <style>
 
@@ -22,44 +22,51 @@
     }
 
     header{
+
       background:#202020;
 
       padding:15px 25px;
 
       display:flex;
+
       align-items:center;
-      justify-content:space-between;
 
       gap:20px;
-      flex-wrap:wrap;
     }
 
     .logo{
-      color:#FF69B4;
+
+      color:rgb(179, 0, 255);
+
       font-size:28px;
+
       font-weight:bold;
     }
 
     .search-box{
+
       flex:1;
-      max-width:600px;
 
       display:flex;
+
+      max-width:700px;
     }
 
     .search-box input{
+
+      margin-left:30%;
 
       width:100%;
 
       padding:12px 16px;
 
-      background:#121212;
-
-      border:1px solid #333;
-
-      color:white;
+      border:none;
 
       outline:none;
+
+      background:#121212;
+
+      color:white;
 
       border-radius:30px 0 0 30px;
 
@@ -68,7 +75,7 @@
 
     .search-box button{
 
-      padding:12px 22px;
+      padding:12px 20px;
 
       border:none;
 
@@ -76,18 +83,9 @@
 
       color:white;
 
-      cursor:pointer;
-
       border-radius:0 30px 30px 0;
 
-      font-size:16px;
-    }
-
-    nav a{
-      color:white;
-      text-decoration:none;
-      margin-left:20px;
-      font-size:17px;
+      cursor:pointer;
     }
 
     .videos{
@@ -138,8 +136,90 @@
 
     .info p{
       color:#aaa;
-      font-size:14px;
     }
+
+    .account{
+      position:relative;
+    }
+
+    .avatar{
+
+      width:42px;
+      height:42px;
+
+      border-radius:50%;
+
+      background:#303030;
+
+      display:flex;
+      justify-content:center;
+      align-items:center;
+
+      cursor:pointer;
+
+      font-size:22px;
+    }
+
+    .menu{
+
+      position:absolute;
+
+      top:55px;
+      right:0;
+
+      width:220px;
+
+      background:#202020;
+
+      border-radius:12px;
+
+      overflow:hidden;
+
+      display:none;
+
+      z-index:1000;
+    }
+
+    .menu button{
+
+      width:100%;
+
+      padding:14px;
+
+      background:none;
+
+      border:none;
+
+      color:white;
+
+      text-align:left;
+
+      cursor:pointer;
+    }
+
+    .menu button:hover{
+      background:#303030;
+    }
+
+    .username{
+
+      padding:15px;
+
+      border-bottom:1px solid #333;
+
+      font-weight:bold;
+    }
+
+    .thumbnail{
+
+  width:100%;
+
+  height:200px;
+
+  object-fit:cover;
+
+  display:block;
+}
 
   </style>
 </head>
@@ -147,7 +227,9 @@
 
 <header>
 
-  <div class="logo">ViceTube</div>
+  <div class="logo">
+    ViceTube
+  </div>
 
   <div class="search-box">
 
@@ -162,10 +244,23 @@
 
   </div>
 
-  <nav>
-    <a href="index.html">Главная</a>
-    <a href="history.html">История</a>
-  </nav>
+  <div class="account">
+
+    <div
+      class="avatar"
+      onclick="toggleMenu()">
+
+      👤
+
+    </div>
+
+    <div class="menu" id="menu">
+
+      <div id="accountContent"></div>
+
+    </div>
+
+  </div>
 
 </header>
 
@@ -178,13 +273,30 @@ let videos = [];
 const container =
   document.getElementById("videos");
 
-fetch("videos.json")
+Promise.all([
 
-.then(response => response.json())
+  fetch("videos.json")
+  .then(res => res.json()),
 
-.then(data => {
+  Promise.resolve(
 
-  videos = data;
+    JSON.parse(
+      localStorage.getItem("uploadedVideos")
+    ) || []
+
+  )
+
+])
+
+.then(([jsonVideos, uploadedVideos]) => {
+
+  videos = [
+
+    ...jsonVideos,
+
+    ...uploadedVideos
+
+  ];
 
   renderVideos(videos);
 
@@ -200,13 +312,17 @@ function renderVideos(list){
 
       <a
         href="watch.html?id=${video.id}"
-        style="text-decoration:none;color:white">
+        style="
+          text-decoration:none;
+          color:white;
+        ">
 
         <div class="card">
 
-          <iframe
-            src="https://drive.google.com/file/d/${video.driveId}/preview">
-          </iframe>
+        <img
+        class="thumbnail"
+        src="
+        https://drive.google.com/thumbnail?id=${video.driveId}&sz=w1000">
 
           <div class="info">
 
@@ -250,6 +366,102 @@ function searchVideos(){
 document
 .getElementById("searchInput")
 .addEventListener("input", searchVideos);
+
+const menu =
+  document.getElementById("menu");
+
+const accountContent =
+  document.getElementById("accountContent");
+
+function toggleMenu(){
+
+  if(menu.style.display == "block"){
+
+    menu.style.display = "none";
+
+  }
+
+  else{
+
+    menu.style.display = "block";
+
+  }
+
+}
+
+let account =
+  JSON.parse(localStorage.getItem("account"));
+
+if(account){
+
+  accountContent.innerHTML = `
+
+    <div class="username">
+
+      ${account.username}
+
+    </div>
+
+    <button
+  onclick="location.href='upload.html'">
+
+  Загрузить видео
+
+    </button>
+
+    <button
+      onclick="
+      location.href='history.html'
+      ">
+
+      История
+
+    </button>
+
+    <button onclick="logout()">
+
+      Выйти
+
+    </button>
+
+  `;
+
+}
+
+else{
+
+  accountContent.innerHTML = `
+
+    <button
+      onclick="
+      location.href='login.html'
+      ">
+
+      Войти
+
+    </button>
+
+  `;
+
+}
+
+function logout(){
+
+  localStorage.removeItem("account");
+
+  location.reload();
+
+}
+
+window.addEventListener("click", e => {
+
+  if(!e.target.closest(".account")){
+
+    menu.style.display = "none";
+
+  }
+
+});
 
 </script>
 
