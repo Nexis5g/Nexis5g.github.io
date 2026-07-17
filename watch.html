@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.png" type="image/png">
 
   <title>Просмотр видео</title>
 
@@ -226,6 +227,22 @@
     }
 
   </style>
+
+<style id="mobile-responsive">
+html,body{max-width:100%;overflow-x:hidden}
+img,video,iframe{max-width:100%;height:auto}
+@media (max-width:768px){
+header{padding:12px !important;display:flex !important;flex-wrap:wrap !important;gap:10px}
+header>*{max-width:100%}
+.videos,.grid,.container{grid-template-columns:1fr !important}
+main,.content,.container{padding:12px !important;width:100% !important}
+input,select,textarea,button{max-width:100%}
+video{width:100% !important}
+.box{width:92% !important;padding:20px !important}
+[style*="margin-left"]{margin-left:0 !important}
+[style*="width: 70%"],[style*="width:70%"]{width:100% !important}
+}
+</style>
 </head>
 <body>
 
@@ -293,6 +310,9 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<script src="supabase.js"></script>
+
 <script>
 
 const params =
@@ -301,168 +321,94 @@ const params =
 const id = params.get("id");
 
 let currentVideo = null;
+let account =
+  JSON.parse(localStorage.getItem("account"));
 
-Promise.all([
+(async function initPage(){
+  await initSupabase();
 
-  fetch("videos.json")
-  .then(res => res.json()),
+  if(account?.username){
+    const profile = await getProfile(account.username);
+    if(profile){
+      account = profile;
+      localStorage.setItem("account", JSON.stringify({ username: account.username }));
+    }
+  }
 
-  Promise.resolve(
-
-    JSON.parse(
-      localStorage.getItem("uploadedVideos")
-    ) || []
-
-  )
-
-])
-
-.then(([jsonVideos, uploadedVideos]) => {
-
-  const allVideos = [
-
-    ...jsonVideos,
-
-    ...uploadedVideos
-
-  ];
+  const allVideos = await getVideos();
 
   currentVideo =
-
     allVideos.find(v => v.id == id);
 
   if(currentVideo){
-
     document.getElementById("player").src =
-
       `https://drive.google.com/file/d/${currentVideo.driveId}/preview`;
 
     document.getElementById("title").innerText =
-
       currentVideo.title;
 
-    saveHistory();
-
-    initLikes();
-
+    await saveHistory();
+    await initLikes();
     loadRecommendations(allVideos);
-
   }
+})();
 
-});
-
-function saveHistory(){
-
-  let account =
-    JSON.parse(localStorage.getItem("account"));
-
-  if(!account){
+async function saveHistory(){
+  if(!account?.username){
     return;
   }
 
-  if(!account.history.includes(id)){
-
-    account.history.push(id);
-
-  }
-
-  localStorage.setItem(
-    "account",
-    JSON.stringify(account)
-  );
-
+  await recordHistory(account.username, id);
 }
 
-function initLikes(){
+async function initLikes(){
+  let likedVideos = [];
 
-  let likes =
-
-    JSON.parse(
-      localStorage.getItem("likes")
-    ) || {};
-
-  if(!likes[id]){
-
-    likes[id] = 0;
-
+  if(account?.username){
+    const profile = await getProfile(account.username);
+    likedVideos = profile?.liked_videos || [];
   }
-
-  localStorage.setItem(
-    "likes",
-    JSON.stringify(likes)
-  );
-
-  updateLikes();
-
-}
-
-function toggleLike(){
-
-  let likedVideos =
-
-    JSON.parse(
-      localStorage.getItem("likedVideos")
-    ) || [];
-
-  let likes =
-
-    JSON.parse(
-      localStorage.getItem("likes")
-    ) || {};
-
-  if(!likes[id]){
-
-    likes[id] = 0;
-
-  }
-
-  if(likedVideos.includes(id)){
-
-    likedVideos =
-      likedVideos.filter(v => v != id);
-
-    likes[id]--;
-
-  }
-
   else{
-
-    likedVideos.push(id);
-
-    likes[id]++;
-
+    likedVideos = JSON.parse(
+      localStorage.getItem("likedVideos") || "[]"
+    );
   }
 
-  localStorage.setItem(
-    "likedVideos",
-    JSON.stringify(likedVideos)
-  );
-
-  localStorage.setItem(
-    "likes",
-    JSON.stringify(likes)
-  );
-
-  updateLikes();
-
+  updateLikes(likedVideos);
 }
 
-function updateLikes(){
+async function toggleLike(){
+  let likedVideos = [];
 
-  let likedVideos =
+  if(account?.username){
+    likedVideos = await window.supabaseHelpers.toggleLike(account.username, id);
+    account = await getProfile(account.username);
+    currentVideo = await getVideoById(id);
+  }
+  else{
+    likedVideos = JSON.parse(
+      localStorage.getItem("likedVideos") || "[]"
+    );
 
-    JSON.parse(
-      localStorage.getItem("likedVideos")
-    ) || [];
+    if(likedVideos.includes(id)){
+      likedVideos = likedVideos.filter(v => v != id);
+    }
+    else{
+      likedVideos.push(id);
+    }
 
-  let likes =
+    localStorage.setItem(
+      "likedVideos",
+      JSON.stringify(likedVideos)
+    );
+  }
 
-    JSON.parse(
-      localStorage.getItem("likes")
-    ) || {};
+  updateLikes(likedVideos);
+}
 
+function updateLikes(likedVideos = []){
   document.getElementById("likesCount")
-  .innerText = likes[id] || 0;
+  .innerText = currentVideo?.likes || 0;
 
   const btn =
     document.getElementById("likeBtn");

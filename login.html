@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.png" type="image/png">
 
   <title>Вход</title>
 
@@ -79,6 +80,22 @@
     }
 
   </style>
+
+<style id="mobile-responsive">
+html,body{max-width:100%;overflow-x:hidden}
+img,video,iframe{max-width:100%;height:auto}
+@media (max-width:768px){
+header{padding:12px !important;display:flex !important;flex-wrap:wrap !important;gap:10px}
+header>*{max-width:100%}
+.videos,.grid,.container{grid-template-columns:1fr !important}
+main,.content,.container{padding:12px !important;width:100% !important}
+input,select,textarea,button{max-width:100%}
+video{width:100% !important}
+.box{width:92% !important;padding:20px !important}
+[style*="margin-left"]{margin-left:0 !important}
+[style*="width: 70%"],[style*="width:70%"]{width:100% !important}
+}
+</style>
 </head>
 <body>
 
@@ -97,34 +114,19 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<script src="supabase.js"></script>
 <script>
 
-function login(){
-
-  const username =
-    document.getElementById("username").value;
-
-  if(username.trim() == ""){
+async function login(){
+  const username = document.getElementById("username").value.trim();
+  if(!username){
     return;
   }
 
-  const account = {
-
-    username:username,
-
-    history:[],
-
-    searches:[]
-
-  };
-
-  localStorage.setItem(
-    "account",
-    JSON.stringify(account)
-  );
-
+  await initSupabase();
+  await loginAndSync(username);
   window.location.href = "index.html";
-
 }
 
 </script>
